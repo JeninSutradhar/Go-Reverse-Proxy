@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/netip"
@@ -18,7 +19,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/promhttp"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/time/rate"
 	"gopkg.in/yaml.v3"
 )
@@ -126,7 +127,6 @@ func selectLocalServer() string {
 	}
 
 	// Simple Round-Robin load balancing
-	var availableServers []string
 	serverCounts := make(map[string]int)
 	for _, addr := range config.LocalServers {
 		serverCounts[addr] = 0
@@ -152,7 +152,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	// IP Whitelisting
 	if len(config.WhitelistCIDR) > 0 {
 		clientIPPort := r.RemoteAddr
-		clientIP, _, err := netip.SplitPort(clientIPPort)
+		clientIP, _, err := net.SplitHostPort(clientIPPort)
 		if err != nil {
 			log.Printf("Error parsing client IP: %v", err)
 			http.Error(w, "Forbidden", http.StatusForbidden)
@@ -161,12 +161,18 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 		allowed := false
 		for _, cidrStr := range config.WhitelistCIDR {
-			_, cidr, err := netip.ParsePrefix(cidrStr)
+			cidr, err := netip.ParsePrefix(cidrStr)
 			if err != nil {
 				log.Printf("Error parsing whitelist CIDR: %v", err)
 				continue // Skip invalid CIDR
 			}
-			if cidr.Contains(clientIP) {
+			clientAddr, err := netip.ParseAddr(clientIP)
+			if err != nil {
+				log.Printf("Error parsing client IP address: %v", err)
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+			if cidr.Contains(clientAddr) {
 				allowed = true
 				break
 			}

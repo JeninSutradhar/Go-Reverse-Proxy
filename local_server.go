@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	publicServerAddr = flag.String("publicServerAddr", "ws://your_public_server_ip:8080/ws", "Public server WebSocket address")
+	publicServerAddr = flag.String("publicServerAddr", "ws://172.174.233.136:8080/ws", "Public server WebSocket address")
 	localServiceAddr = flag.String("localServiceAddr", "localhost:3000", "Address of your local service")
 	reconnectDelay   = flag.Duration("reconnectDelay", 5*time.Second, "Delay before attempting to reconnect")
 )

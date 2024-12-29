@@ -67,7 +67,7 @@
    - Install `git`: Use `sudo apt install git` to get Git for cloning repositories.
    - Open necessary ports for your local server (default: `3000`).
 
-2. **Server (Ubuntu VM):**
+2. **Server (Azure Ubuntu VM in my case):**
    - Install **aaPanel**: if it's already installed, you can use it to manage configurations like firewalls, certificates, and server monitoring.
    - Open required ports in **Azure's Network Security Group (NSG)**:
      - **8080**: HTTP public server.
@@ -102,7 +102,7 @@
    - Create or modify the `config.yaml` file:
      ```yaml
      local_servers:
-       - "http://localhost:3000"  # Replace with your local machine's server address if needed
+       - "http://<YOUR-LOCAL-MACHINE-IP>:3000"  # Replace with your local machine's server address if needed
      whitelist_cidr:
        - "0.0.0.0/0"  # Allow all (or replace with specific CIDRs for security)
      rate_limit: 100
